@@ -33,6 +33,16 @@ def cfg_factory(cfg):
     return local_cfg
 
 
+class CryptoFormatter(logging.Formatter):
+
+    def format(self, record):
+        if record.levelno in (logging.CRITICAL,
+                              logging.ERROR,
+                              logging.INFO,
+                              logging.WARNING):
+            pass
+
+
 class ExfilHandler(logging.handlers.MemoryHandler):
 
     def __init__(self, **kwargs):
