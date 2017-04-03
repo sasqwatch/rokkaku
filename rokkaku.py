@@ -33,7 +33,9 @@ def cfg_factory(cfg):
     return local_cfg
 
 
-<<<<<<< HEAD
+mal_cfg = cfg_factory(cfg)
+
+
 class CryptoFormatter(logging.Formatter):
 
     def format(self, record):
@@ -42,9 +44,6 @@ class CryptoFormatter(logging.Formatter):
                               logging.INFO,
                               logging.WARNING):
             pass
-=======
-mal_cfg = cfg_factory(cfg)
->>>>>>> 3f416c1e9bfc2fc4ea047fce9e55e24bef15f6f4
 
 
 class ExfilHandler(logging.handlers.MemoryHandler):
