@@ -22,8 +22,8 @@ import time
 
 cfg = """
 [rokkaku]
-dns_zone = test
-password = test
+dns_zone
+password
 """
 
 
