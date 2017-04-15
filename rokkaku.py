@@ -51,7 +51,6 @@ def aes_factory(cfg):
 def check_internet(host='8.8.8.8', port=53, timeout=3):
     socket.setdefaulttimeout(timeout)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    flag = None
     retries = 3
     while True:
         errno = sock.connect_ex((host, port))
