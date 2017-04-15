@@ -47,7 +47,7 @@ def cfg_factory(cfg):
     local_cfg = configparser.ConfigParser(allow_no_value=False)
     try:
         local_cfg.readfp(StringIO(cfg))
-    except configparser.ParsingError as e:
+    except configparser.ParsingError:
         sys.exit(1)
     if not local_cfg.has_section('rokkaku'):
         sys.exit(1)
