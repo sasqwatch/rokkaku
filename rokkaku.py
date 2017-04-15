@@ -84,11 +84,11 @@ mal_cfg = cfg_factory(cfg)
 
 class CryptoFormatter(logging.Formatter):
 
-    minimal = '%(asctime)s %(message)s'
     converter = time.gmtime
-    gmtdate = '%Y-%m-%d %H:%M:%S'
 
-    def __init__(self, fmt=minimal, datefmt=gmtdate):
+    def __init__(self,
+                 fmt='%(asctime)s %(message)s',
+                 datefmt='%Y-%m-%d %H:%M:%S'):
         super(CryptoFormatter, self).__init__(fmt, datefmt)
         self.aes = aes_factory(mal_cfg)
 
