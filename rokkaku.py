@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 try:
     import ConfigParser as configparser
 except ImportError:
     import configparser
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
 import base64
+from builtins import bytes
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import dns.exception
 import dns.resolver
+from io import StringIO
 import logging
 import logging.handlers
 import random
@@ -22,7 +22,7 @@ import socket
 import sys
 import time
 
-cfg = """
+cfg = u"""
 [rokkaku]
 dns_zone
 password
@@ -33,7 +33,7 @@ def cfg_factory(cfg):
     local_cfg = configparser.ConfigParser(allow_no_value=False)
     try:
         local_cfg.readfp(StringIO(cfg))
-    except configparser.ParsingError:
+    except configparser.ParsingError as e:
         sys.exit(1)
     if not local_cfg.has_section('rokkaku'):
         sys.exit(1)
