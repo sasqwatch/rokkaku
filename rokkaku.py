@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import platform, sys
+import os
+import platform
+import sys
 
 if platform.system() != 'Windows':
     sys.exit(1)
 
 
-def exhook(exception_type, exception, traceback):
-    with open('nul', 'w') as nul:
+def excepthook(exception_type, exception, traceback):
+    with open(os.devnull, 'w') as nul:
         print('{0}: {1}'.format(exception_type.__name__, exception), file=nul)
 
 
-sys.excepthook = exhook
+sys.excepthook = excepthook
+
 try:
     import ConfigParser as configparser
 except ImportError:
