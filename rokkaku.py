@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import os
-import platform
 import sys
-
-if platform.system() != 'Windows':
-    sys.exit(1)
 
 
 def excepthook(exception_type, exception, traceback):
@@ -15,6 +10,12 @@ def excepthook(exception_type, exception, traceback):
 
 
 sys.excepthook = excepthook
+
+import os
+import platform
+
+if platform.system() != 'Windows':
+    sys.exit(1)
 
 try:
     import ConfigParser as configparser
