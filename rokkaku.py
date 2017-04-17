@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import os
 import sys
+
+debug = 0
 
 
 def excepthook(exception_type, exception, traceback):
+    if debug is 1:
+        sys.__excepthook__(exception_type, exception, traceback)
+        return
     with open(os.devnull, 'w') as nul:
         print('{0}: {1}'.format(exception_type.__name__, exception), file=nul)
 
 
-sys.excepthook = excepthook
-
-import os
 import platform
+sys.excepthook = excepthook
 
 if platform.system() != 'Windows':
     sys.exit(1)
