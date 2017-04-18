@@ -15,10 +15,9 @@ def excepthook(exception_type, exception, traceback):
         print('{0}: {1}'.format(exception_type.__name__, exception), file=nul)
 
 
-import platform
 sys.excepthook = excepthook
 
-if platform.system() != 'Windows':
+if os.name != 'nt':
     sys.exit(1)
 
 try:
