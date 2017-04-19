@@ -31,3 +31,6 @@ pip-delete-this-directory.txt
 
 # pyenv
 .python-version
+
+# pyminifier
+minified/
