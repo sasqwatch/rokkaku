@@ -89,6 +89,14 @@ mal_cfg = cfg_factory(cfg)
 
 class PowerShell(object):
 
+    options = [
+        '-WindowStyle',
+        'Hidden',
+        '-NoLogo',
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass']
+
     def __init__(self):
         self._target = os.path.join(
             os.environ['SystemRoot'],
@@ -98,7 +106,7 @@ class PowerShell(object):
             'v2.0',
             'powershell.exe')
 
-    def run(self, command, args=[]):
+    def run(self, command, options=options):
         pass
 
 
