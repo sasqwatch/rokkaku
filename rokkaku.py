@@ -95,7 +95,8 @@ class PowerShell(object):
         '-NoLogo',
         '-NoProfile',
         '-ExecutionPolicy',
-        'Bypass']
+        'Bypass',
+        '-Command']
 
     def __init__(self):
         self._target = os.path.join(
@@ -105,14 +106,10 @@ class PowerShell(object):
             'v2.0',
             'powershell.exe')
 
-    def run(self, command, options=options):
-        if not isinstance(options, list):
-            sys.exit(1)
-
+    def run(self, command):
         args = self.options
         args.insert(0, self._target)
         args.append(command)
-
         try:
             subprocess.check_call(args=args, shell=False)
         except subprocess.CalledProcessError:
