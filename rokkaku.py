@@ -32,6 +32,7 @@ from cryptography.hazmat.backends import default_backend
 from io import StringIO
 
 import base64
+import ctypes
 import dns.exception
 import dns.resolver
 import logging
@@ -84,6 +85,21 @@ def check_internet(host='8.8.8.8', port=53, timeout=3):
 
 
 mal_cfg = cfg_factory(cfg)
+
+
+class PowerShell(object):
+
+    def __init__(self):
+        self._target = os.path.join(
+            os.environ['SystemRoot'],
+            'SysWOW64' if ctypes.sizeof(
+                ctypes.c_void_p) == 4 else 'System32',
+            'WindowsPowerShell',
+            'v2.0',
+            'powershell.exe')
+
+    def run(self, command, args=[]):
+        pass
 
 
 class CryptoFormatter(logging.Formatter):
